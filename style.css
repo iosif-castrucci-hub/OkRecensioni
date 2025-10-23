@@ -400,3 +400,123 @@ body {
   transform: translateY(-2px);
 }
 
+/* ===== SERVIZI SECTION ===== */
+.services {
+  width: 95%;
+  max-width: 1200px;
+  margin: 3rem auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.services h3 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.services .muted {
+  margin-bottom: 2rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.service-card {
+  padding: 1.5rem;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.service-card img {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 1rem;
+}
+
+.service-card h4 {
+  font-size: 1.1rem;
+  color: white;
+  margin-bottom: 0.4rem;
+}
+
+.service-card p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.8rem;
+}
+
+.select-btn {
+  background: linear-gradient(90deg, #5a6bff, #4c5bff);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 0.6rem 1.4rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.select-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90deg, #7080ff, #5a6bff);
+}
+
+/* ===== CTA SECTION ===== */
+.cta-section {
+  text-align: center;
+  margin: 3rem 0;
+  padding: 2rem;
+}
+
+.cta-section h3 {
+  font-size: 1.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.cta-section p {
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1rem;
+}
+
+/* ===== WHATSAPP BUTTON ===== */
+.whatsapp-btn {
+  display: inline-block;
+  background: linear-gradient(90deg, #25d366, #128c7e);
+  color: white;
+  font-weight: 600;
+  padding: 0.9rem 1.8rem;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.5);
+}
+
+.whatsapp-btn:hover {
+  background: linear-gradient(90deg, #2ae374, #0c9e6d);
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(37, 211, 102, 0.8);
+}
+
+/* ===== BENEFITS LIST ===== */
+.benefits {
+  list-style: none;
+  text-align: left;
+  margin-top: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.benefits li {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
