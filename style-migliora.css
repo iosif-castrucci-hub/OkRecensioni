@@ -124,4 +124,15 @@
     font-size: 2.2rem;
   }
 }
+/* ===== FIX PLACEHOLDER VISIBILITY ===== */
+.search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  transition: opacity 0.25s ease;
+}
+
+/* Quando l’utente digita, il placeholder svanisce */
+.search-box input:focus::placeholder {
+  opacity: 0;
+}
+
 
