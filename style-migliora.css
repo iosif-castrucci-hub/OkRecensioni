@@ -64,3 +64,47 @@
     font-size: 1.5rem;
   }
 }
+/* ===== LOGO E TITOLO RESPONSIVE ===== */
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.brand .logo img {
+  width: 60px; /* più grande */
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.brand .logo img:hover {
+  transform: scale(1.05);
+}
+
+.brand-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+/* ===== MOBILE FIX: LOGO + TESTO ALLINEATI ===== */
+@media (max-width: 600px) {
+  .brand {
+    flex-direction: row; /* forza logo e testo sulla stessa riga */
+    gap: 0.6rem;
+  }
+
+  .brand .logo img {
+    width: 72px; /* ancora più grande su mobile */
+    height: 72px;
+  }
+
+  .brand-name {
+    font-size: 1.9rem; /* leggermente più grande anche il testo */
+  }
+}
+
