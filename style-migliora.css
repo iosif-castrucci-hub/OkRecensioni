@@ -64,61 +64,64 @@
     font-size: 1.5rem;
   }
 }
-/* ===== LOGO + TITOLO INLINE (FIX MOBILE) ===== */
-.navbar .brand {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  flex-direction: row !important; /* forza la disposizione orizzontale */
-  gap: 1rem;
-}
-
-/* LOGO */
-.navbar .brand .logo {
-  width: 80px;
-  height: 80px;
+/* ===== HEADER (LOGO + TITOLO INLINE) ===== */
+.header {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
+  width: 90%;
+  max-width: 1000px;
+  margin: 2rem auto 1.5rem auto;
+  padding: 1.2rem 2rem;
+  text-align: center;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-.navbar .brand .logo svg,
-.navbar .brand .logo img {
+/* ===== LOGO ===== */
+.header-logo {
   width: 80px;
   height: 80px;
   object-fit: contain;
+  border-radius: 12px;
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
-.navbar .brand .logo:hover svg,
-.navbar .brand .logo:hover img {
+.header-logo:hover {
   transform: scale(1.05);
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
 }
 
-/* TESTO */
-.navbar .brand-name {
+/* ===== TESTO ===== */
+.header-title {
   font-size: 2rem;
   font-weight: 700;
   color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.6px;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
 }
 
-/* ===== MOBILE VERSION (ancora più grande e orizzontale) ===== */
+/* ===== MOBILE VERSION ===== */
 @media (max-width: 600px) {
-  .navbar .brand {
-    flex-direction: row !important;
-    align-items: center;
+  .header {
+    flex-direction: row; /* resta su una sola riga */
     gap: 0.8rem;
+    padding: 1rem;
   }
 
-  .navbar .brand .logo svg,
-  .navbar .brand .logo img {
-    width: 90px;
+  .header-logo {
+    width: 90px; /* più grande su mobile */
     height: 90px;
   }
 
-  .navbar .brand-name {
+  .header-title {
     font-size: 2.2rem;
   }
 }
+
