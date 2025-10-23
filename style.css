@@ -272,3 +272,37 @@ body {
     height: auto;
   }
 }
+.highlight-red {
+  color: #ff4d4d;
+  font-weight: 700;
+}
+
+.highlight-green {
+  color: #00ff99;
+  font-weight: 700;
+}
+
+.highlight-yellow {
+  color: #ffe066;
+  font-weight: 600;
+}
+
+.highlight-blue {
+  color: #5ab0ff;
+  font-weight: 700;
+}
+
+.highlight-big {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.5);
+  display: inline-block;
+  margin-top: 0.5rem;
+  animation: pulseGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+  from { text-shadow: 0 0 8px rgba(255,255,255,0.3); transform: scale(1); }
+  to { text-shadow: 0 0 20px rgba(255,255,255,0.7); transform: scale(1.05); }
+}
