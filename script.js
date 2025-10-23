@@ -1,4 +1,4 @@
-// script.js — OkRecensioni con ranking locale simulato
+// script.js — OkRecensioni con ranking locale simulato + CTA "Migliora le tue recensioni"
 
 let autocompleteService = null;
 let placesService = null;
@@ -80,7 +80,7 @@ function selectPlace(placeId, description) {
   placesService.getDetails(
     {
       placeId,
-      fields: ["name", "formatted_address", "rating", "user_ratings_total", "reviews", "url"],
+      fields: ["name", "formatted_address", "rating", "user_ratings_total", "reviews"],
     },
     (details, status) => {
       if (status !== google.maps.places.PlacesServiceStatus.OK || !details) {
@@ -113,6 +113,7 @@ function showPlace(details) {
       <div class="rank-number">${position}º</div>
       <p class="muted">Le persone difficilmente scorrono oltre i primi 3 risultati.</p>
       <button id="showReviewsBtn" class="show-reviews-btn">Mostra le recensioni</button>
+      <button class="improve-btn" onclick="window.location.href='/migliora.html'">💪 Migliora le tue recensioni ora</button>
     </div>
   `;
 
@@ -146,15 +147,12 @@ function renderReviews(details, reviewsDiv) {
     reviewsDiv.innerHTML = "<p class='muted'>Nessuna recensione disponibile.</p>";
   }
 
-  if (details.url) {
-    const link = document.createElement("a");
-    link.href = details.url;
-    link.target = "_blank";
-    link.rel = "noopener";
-    link.className = "maps-link glass";
-    link.textContent = "🌍 Apri su Google Maps";
-    reviewsDiv.appendChild(link);
-  }
+  // === Aggiungi CTA finale ===
+  const improve = document.createElement("button");
+  improve.className = "improve-btn";
+  improve.textContent = "💪 Migliora le tue recensioni ora";
+  improve.onclick = () => (window.location.href = "/migliora.html");
+  reviewsDiv.appendChild(improve);
 }
 
 function showMessage(msg) {
