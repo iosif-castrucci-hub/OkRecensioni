@@ -398,3 +398,8 @@ body {
   background: linear-gradient(90deg, #7080ff, #4c5bff);
   transform: translateY(-2px);
 }
+.logo img {
+  filter: drop-shadow(0 0 10px rgba(90, 107, 255, 0.6));
+  border-radius: 8px;
+}
+
