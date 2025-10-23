@@ -1,4 +1,4 @@
-/* ===== RESET & BASE ===== */
+/* ===== GLOBAL STYLE ===== */
 * {
   margin: 0;
   padding: 0;
@@ -17,14 +17,14 @@ body {
   align-items: center;
 }
 
-/* ===== ANIMAZIONE SFONDO ===== */
+/* ===== GRADIENT ANIMATION ===== */
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* ===== EFFETTO GLASS ===== */
+/* ===== GLASS EFFECT ===== */
 .glass {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 16px;
@@ -45,7 +45,7 @@ body {
   align-items: center;
 }
 
-/* ===== BRAND (Logo + Nome) ===== */
+/* ===== BRAND ===== */
 .brand {
   display: flex;
   align-items: center;
@@ -60,7 +60,7 @@ body {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.4rem;
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
 }
 
 .brand-name {
@@ -70,7 +70,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* ===== HERO ===== */
+/* ===== HERO SECTION ===== */
 .hero {
   text-align: center;
   width: 90%;
@@ -102,6 +102,7 @@ body {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
+  position: relative;
 }
 
 .search-box input {
@@ -119,7 +120,34 @@ body {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* ===== SEZIONE RISULTATI ===== */
+/* ===== AUTOCOMPLETE RESULTS ===== */
+.autocomplete-results {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  border-radius: 16px;
+  overflow: hidden;
+  max-height: 260px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.autocomplete-item {
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  transition: background 0.15s ease;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.autocomplete-item:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ===== RESULTS SECTION ===== */
 .results-section {
   width: 90%;
   max-width: 800px;
@@ -127,7 +155,7 @@ body {
   text-align: center;
 }
 
-/* ===== CARD ATTIVITÀ ===== */
+/* ===== PLACE CARD ===== */
 .place-card {
   padding: 2rem;
   margin-top: 1.5rem;
@@ -138,6 +166,7 @@ body {
 .place-card h3 {
   font-size: 1.4rem;
   margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .place-card p {
@@ -153,7 +182,7 @@ body {
   margin-bottom: 1rem;
 }
 
-/* ===== RECENSIONI ===== */
+/* ===== REVIEWS ===== */
 #reviews-list .review {
   margin-top: 1rem;
   padding: 1rem;
@@ -180,7 +209,27 @@ body {
   font-size: 0.85rem;
 }
 
-/* ===== MESSAGGIO NESSUN RISULTATO ===== */
+/* ===== GOOGLE MAPS LINK ===== */
+.maps-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.maps-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ===== NO RESULTS ===== */
 .no-results {
   margin-top: 1.5rem;
   padding: 1.5rem;
@@ -191,17 +240,16 @@ body {
 
 /* ===== FOOTER ===== */
 .footer {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  width: 90%;
   text-align: center;
-  padding: 1rem;
+  padding: 1.5rem;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.8);
   margin-top: auto;
+  margin-bottom: 1rem;
 }
 
-/* ===== ANIMAZIONI ===== */
+/* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -233,6 +281,10 @@ body {
 
   .place-card {
     padding: 1.5rem;
+  }
+
+  .footer {
+    font-size: 0.85rem;
   }
 }
 
@@ -267,55 +319,4 @@ body {
 /* ===== UTILITY ===== */
 .hidden {
   display: none;
-}
-
-/* ===== AUTOCOMPLETE SUGGERIMENTI ===== */
-.autocomplete-results {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  border-radius: 16px;
-  overflow: hidden;
-  max-height: 250px;
-  overflow-y: auto;
-  text-align: left;
-}
-
-.autocomplete-item {
-  padding: 0.8rem 1rem;
-  cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  transition: background 0.2s ease;
-  font-size: 0.95rem;
-}
-
-.autocomplete-item:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* ===== LINK GOOGLE MAPS ===== */
-.maps-link {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 25px;
-  font-size: 0.95rem;
-  color: white;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.maps-link:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-/* ===== POSIZIONE RELATIVA SEARCH BOX ===== */
-.search-box {
-  position: relative;
 }
