@@ -378,3 +378,25 @@ body {
   transform: translateY(-2px);
   background: linear-gradient(90deg, #7080ff, #5a6bff);
 }
+
+/* ===== IMPROVE BUTTON ===== */
+.improve-btn {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.8rem 1.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(90deg, #4c5bff, #6a5aff);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+
+.improve-btn:hover {
+  background: linear-gradient(90deg, #7080ff, #4c5bff);
+  transform: translateY(-2px);
+}
+
