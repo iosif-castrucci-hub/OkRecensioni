@@ -64,47 +64,61 @@
     font-size: 1.5rem;
   }
 }
-/* ===== LOGO E TITOLO RESPONSIVE ===== */
-.brand {
+/* ===== LOGO + TITOLO INLINE (FIX MOBILE) ===== */
+.navbar .brand {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row !important; /* forza la disposizione orizzontale */
+  gap: 1rem;
+}
+
+/* LOGO */
+.navbar .brand .logo {
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.8rem;
 }
 
-.brand .logo img {
-  width: 60px; /* più grande */
-  height: 60px;
+.navbar .brand .logo svg,
+.navbar .brand .logo img {
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
   transition: transform 0.3s ease;
 }
 
-.brand .logo img:hover {
+.navbar .brand .logo:hover svg,
+.navbar .brand .logo:hover img {
   transform: scale(1.05);
 }
 
-.brand-name {
-  font-size: 1.8rem;
+/* TESTO */
+.navbar .brand-name {
+  font-size: 2rem;
   font-weight: 700;
   color: #ffffff;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
 }
 
-/* ===== MOBILE FIX: LOGO + TESTO ALLINEATI ===== */
+/* ===== MOBILE VERSION (ancora più grande e orizzontale) ===== */
 @media (max-width: 600px) {
-  .brand {
-    flex-direction: row; /* forza logo e testo sulla stessa riga */
-    gap: 0.6rem;
+  .navbar .brand {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.8rem;
   }
 
-  .brand .logo img {
-    width: 72px; /* ancora più grande su mobile */
-    height: 72px;
+  .navbar .brand .logo svg,
+  .navbar .brand .logo img {
+    width: 90px;
+    height: 90px;
   }
 
-  .brand-name {
-    font-size: 1.9rem; /* leggermente più grande anche il testo */
+  .navbar .brand-name {
+    font-size: 2.2rem;
   }
 }
-
