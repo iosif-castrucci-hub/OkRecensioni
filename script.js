@@ -1,4 +1,4 @@
-// script.js — OkRecensioni Autocomplete + Reviews
+// script.js — OkRecensioni con ranking locale simulato
 
 let autocompleteService = null;
 let placesService = null;
@@ -103,12 +103,33 @@ function showPlace(details) {
   noRes.classList.add("hidden");
   card.classList.remove("hidden");
 
+  // === Ranking simulato ===
+  const position = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
+
+  reviewsDiv.innerHTML = `
+    <div class="ranking-card glass">
+      <h3>📊 Ecco come si posiziona la tua attività</h3>
+      <p class="muted">Il tuo posizionamento nella ricerca locale:</p>
+      <div class="rank-number">${position}º</div>
+      <p class="muted">Le persone difficilmente scorrono oltre i primi 3 risultati.</p>
+      <button id="showReviewsBtn" class="show-reviews-btn">Mostra le recensioni</button>
+    </div>
+  `;
+
   nameEl.textContent = details.name || "";
   addrEl.textContent = details.formatted_address || "";
   ratingEl.innerHTML = details.rating
     ? `⭐ ${details.rating} (${details.user_ratings_total || 0} recensioni)`
     : "Nessuna valutazione";
 
+  document.getElementById("showReviewsBtn").addEventListener("click", () => {
+    renderReviews(details, reviewsDiv);
+  });
+
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function renderReviews(details, reviewsDiv) {
   reviewsDiv.innerHTML = "";
   if (details.reviews?.length) {
     details.reviews.slice(0, 5).forEach((r) => {
@@ -134,8 +155,6 @@ function showPlace(details) {
     link.textContent = "🌍 Apri su Google Maps";
     reviewsDiv.appendChild(link);
   }
-
-  card.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function showMessage(msg) {
