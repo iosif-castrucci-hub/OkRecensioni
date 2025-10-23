@@ -72,7 +72,7 @@ body {
 
 /* ===== HERO SECTION ===== */
 .hero {
-  position: relative; /* stacking context per autocomplete */
+  position: relative;
   z-index: 10;
   text-align: center;
   width: 90%;
@@ -128,7 +128,7 @@ body {
   top: 110%;
   left: 0;
   right: 0;
-  z-index: 99999; /* sempre sopra tutto */
+  z-index: 99999;
   border-radius: 16px;
   overflow: hidden;
   max-height: 260px;
@@ -139,20 +139,20 @@ body {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  animation: fadeInUp 0.25s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 .autocomplete-item {
   padding: 0.85rem 1rem;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   transition: background 0.15s ease;
   font-size: 0.95rem;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .autocomplete-item:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* ===== RESULTS SECTION ===== */
@@ -263,15 +263,9 @@ body {
   transform: translateX(-50%);
 }
 
-
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -339,4 +333,48 @@ body {
 /* ===== UTILITY ===== */
 .hidden {
   display: none;
+}
+
+/* ===== RANKING CARD ===== */
+.ranking-card {
+  text-align: center;
+  padding: 2rem;
+  margin-top: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.5s ease;
+}
+
+.ranking-card h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: #ffffff;
+}
+
+.rank-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #5a6bff;
+  margin: 0.6rem 0;
+}
+
+.show-reviews-btn {
+  margin-top: 1rem;
+  padding: 0.7rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(90deg, #5a6bff, #4c5bff);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.show-reviews-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(90deg, #7080ff, #5a6bff);
 }
