@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OkRecensioni - Trova le recensioni Google della tua attività</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <nav class="navbar glass">
+      <div class="brand">
+        <!-- Logo SVG -->
+        <div class="logo">
+          <svg width="42" height="42" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OkRecensioni icon">
+            <defs>
+              <linearGradient id="okblue" x1="0" y1="0" x2="0" y2="256" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#5A6BFF"/>
+                <stop offset="1" stop-color="#4C5BFF"/>
+              </linearGradient>
+            </defs>
+            <rect x="24" y="24" width="208" height="208" rx="40" fill="url(#okblue)"/>
+            <g transform="translate(128,128)">
+              <path d="M0 -52 L14.4 -10.8 L57 -10.8 L21.1 14.2 L35.5 55.8 L0 31.2 L-35.5 55.8 L-21.1 14.2 L-57 -10.8 L-14.4 -10.8 Z" fill="#FFFFFF"/>
+            </g>
+          </svg>
+        </div>
+        <h1 class="brand-name">OkRecensioni</h1>
+      </div>
+    </nav>
+
+    <section class="hero glass">
+      <h2>Trova le recensioni Google della tua attività</h2>
+      <p>Scrivi il nome della tua attività qui sotto per visualizzare le recensioni pubbliche su Google.</p>
+      
+      <div class="search-box glass">
+        <input id="place-input" type="search" placeholder="Es. Vecchia Osteria Del Nacchero" autocomplete="off">
+      </div>
+    </section>
+
+    <section id="results" class="results-section">
+      <div id="place-card" class="place-card glass hidden">
+        <h3 id="place-name"></h3>
+        <p id="place-address"></p>
+        <p id="place-rating"></p>
+        <div id="reviews-list"></div>
+      </div>
+
+      <div id="no-results" class="no-results glass">
+        <p>Inizia digitando il nome della tua attività sopra 👆</p>
+      </div>
+    </section>
+
+    <footer class="footer glass">
+      <p>© 2025 OkRecensioni. Tutti i diritti riservati.</p>
+    </footer>
+  </div>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&libraries=places" defer></script>
+  <script src="script.js" defer></script>
+</body>
+</html>
