@@ -268,3 +268,54 @@ body {
 .hidden {
   display: none;
 }
+
+/* ===== AUTOCOMPLETE SUGGERIMENTI ===== */
+.autocomplete-results {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  border-radius: 16px;
+  overflow: hidden;
+  max-height: 250px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.autocomplete-item {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  transition: background 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.autocomplete-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== LINK GOOGLE MAPS ===== */
+.maps-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 25px;
+  font-size: 0.95rem;
+  color: white;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.maps-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ===== POSIZIONE RELATIVA SEARCH BOX ===== */
+.search-box {
+  position: relative;
+}
