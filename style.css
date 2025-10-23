@@ -248,14 +248,21 @@ body {
 
 /* ===== FOOTER ===== */
 .footer {
-  width: 90%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  padding: 1.5rem;
+  padding: 1.5rem 0;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.8);
   margin-top: auto;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
+
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
