@@ -191,9 +191,10 @@
 }
 /* ===== HEADER CARD PIÙ PICCOLA + LOGO PIÙ GRANDE ===== */
 .header {
-  max-width: 600px; /* riduce la larghezza della card */
-  padding: 1rem 1.5rem; /* riduce i padding interni */
-  gap: 1.5rem; /* lascia spazio tra logo e testo */
+  max-width: 1000px; /* riduce la larghezza della card */
+  padding: 0.6rem 1.5rem; /* riduce i padding interni */
+  height: auto;
+  gap: 1.2rem; /* lascia spazio tra logo e testo */
 }
 
 .header-logo {
@@ -205,5 +206,6 @@
 .header-title {
   font-size: 2.2rem; /* leggermente più grande per bilanciare il logo */
   font-weight: 700;
+  color: #ffffff;
 }
 
