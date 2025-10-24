@@ -63,13 +63,16 @@ function setCached(id, data) {
 
 // ===================== DISTANCES =====================
 function distanceMeters(fromLatLng, toLocation) {
+  if (!fromLatLng || !toLocation) return 0;
   try {
-    if (!fromLatLng || !toLocation) return 0;
     const R = 6371000;
-    const lat1 = fromLatLng.lat();
-    const lon1 = fromLatLng.lng();
+    const lat1 = typeof fromLatLng.lat === "function" ? fromLatLng.lat() : fromLatLng.lat;
+    const lon1 = typeof fromLatLng.lng === "function" ? fromLatLng.lng() : fromLatLng.lng;
     const lat2 = typeof toLocation.lat === "function" ? toLocation.lat() : toLocation.lat;
     const lon2 = typeof toLocation.lng === "function" ? toLocation.lng() : toLocation.lng;
+
+    if ([lat1, lon1, lat2, lon2].some(v => typeof v !== "number" || isNaN(v))) return 0;
+
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -77,7 +80,7 @@ function distanceMeters(fromLatLng, toLocation) {
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return Math.round(R * c);
   } catch {
     return 0;
   }
@@ -85,7 +88,7 @@ function distanceMeters(fromLatLng, toLocation) {
 
 // ===================== SCORE =====================
 function scorePlace({ rating = 0, total = 0, distanceM = 0 }) {
-  const distKm = distanceM / 10000;
+  const distKm = distanceM / 1000;
   return rating * 20 + log1p(total) * 3 - distKm * 1.2;
 }
 
@@ -260,14 +263,14 @@ function buildRealRanking(targetDetails, cat) {
   }
 
   const center = new google.maps.LatLng(location.lat(), location.lng());
-  const nearbyReq = { location: center, radius: 5000, type: cat.type, language: "it" };
+  const nearbyReq = { location: center, radius: 10000, type: cat.type, language: "it" }; // 10 km
   if (cat.keyword) nearbyReq.keyword = cat.keyword;
 
   renderRankingCard("…");
   placesService.nearbySearch(nearbyReq, (res, st) => {
     if (st !== google.maps.places.PlacesServiceStatus.OK || !res || !res.length) {
       const textReq = { query: inputEl.value + " Italia", language: "it" };
-      placesService.textSearch(textReq, (res2, st2) => {
+      placesService.textSearch(textReq, (res2) => {
         setCached(cacheKey, { center, rawList: res2 || [] });
         finalizeRanking(targetDetails, center, res2 || []);
       });
@@ -343,38 +346,17 @@ function renderNearbyPlaces(list, position, target) {
   });
   html += `</div>`;
 
-  // --- SMART COMPARISON ---
+  // --- SMART COMPARISON (giallo/rosso fisso) ---
   if (target && list.length > 0) {
-    const avgRating = list.reduce((sum, x) => sum + (x.rating || 0), 0) / list.length;
-    const avgTotal = list.reduce((sum, x) => sum + (x.total || 0), 0) / list.length;
+    const avgRating = list.reduce((s, x) => s + (x.rating || 0), 0) / list.length;
+    const avgTotal = list.reduce((s, x) => s + (x.total || 0), 0) / list.length;
     const diffRating = target.rating - avgRating;
     const diffTotal = target.total - avgTotal;
 
-    let color = "#cccccc";
-    if (diffRating >= 0.2) color = "#4CAF50"; // verde
-    else if (diffRating >= -0.2) color = "#FFC107"; // giallo
-    else color = "#FF5252"; // rosso
-
+    const color = diffRating < -0.2 || diffTotal < -20 ? "#FF5252" : "#FFC107";
     const trend =
-      diffRating > 0.2
-        ? "🌟 Hai un punteggio migliore della media locale!"
-        : diffRating < -0.2
+      diffRating < -0.2
         ? "⚠️ Il tuo rating è inferiore alla media nella tua zona."
-        : "😐 Hai un punteggio simile agli altri.";
+        : "😐 Hai un punteggio simile alla media locale.";
 
-    html += `<div style="margin-top:1.5rem;padding:1rem;border-radius:12px;background:rgba(255,255,255,0.08);font-size:.95rem;">
-      <strong>🔍 Analisi comparativa</strong><br>
-      Media top competitor: ${avgRating.toFixed(1)}⭐ – ${Math.round(avgTotal)} recensioni<br>
-      Tua attività: ${target.rating.toFixed(1)}⭐ – ${target.total} recensioni<br>
-      <div style="margin-top:.4rem;color:${color};font-weight:600;">${trend}</div>
-    </div>`;
-  }
-
-  box.innerHTML = html;
-}
-
-function showMessage(msg) {
-  noResultsEl.classList.remove("hidden");
-  placeCardEl.classList.add("hidden");
-  noResultsEl.innerHTML = `<p>${escapeHtml(msg)}</p>`;
-}
+    html += `<div style="margin-top:1.5rem;padding:1rem;border-radius:12px;background:rgba(255,255,255,0.
