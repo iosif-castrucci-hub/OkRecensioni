@@ -87,7 +87,7 @@ function showPlace(details) {
     ? `⭐ ${details.rating} (${details.user_ratings_total} recensioni)`
     : "Nessuna valutazione";
 
-  const pos = Math.floor(Math.random() * 8) + 8; // posizione stimata casuale
+  const pos = Math.floor(Math.random() * 8) + 8; // posizione stimata casuale (8º–15º)
   reviewsDiv.innerHTML = `
     <div class="ranking-card glass">
       <h3>📊 Il tuo posizionamento stimato</h3>
@@ -123,9 +123,17 @@ function loadNearbyCompetitors(details) {
     type: mainType,
   };
 
+  // timeout di sicurezza (8 secondi)
+  const fallbackTimeout = setTimeout(() => {
+    leaderboard.innerHTML =
+      "<p class='muted'>Non è stato possibile ottenere attività vicine al momento.</p>";
+  }, 8000);
+
   placesService.nearbySearch(request, (results, status) => {
+    clearTimeout(fallbackTimeout);
+
     if (status !== google.maps.places.PlacesServiceStatus.OK || !results?.length) {
-      // fallback: ricerca generica per food
+      // fallback generico
       request.type = "food";
       placesService.nearbySearch(request, (altResults, altStatus) => {
         if (altStatus === google.maps.places.PlacesServiceStatus.OK && altResults.length) {
@@ -150,8 +158,9 @@ function renderCompetitors(details, results) {
     .filter((r) => r.name !== details.name && r.rating)
     .map((r) => {
       const distanceKm =
-        google.maps.geometry.spherical.computeDistanceBetween(origin, r.geometry.location) /
-        1000;
+        google.maps.geometry?.spherical?.computeDistanceBetween
+          ? google.maps.geometry.spherical.computeDistanceBetween(origin, r.geometry.location) / 1000
+          : Math.random() * 3 + 0.5; // fallback finto in km
       return {
         name: r.name,
         rating: r.rating,
