@@ -307,26 +307,43 @@ function renderRankingCard(position) {
       <div class="rank-number">${position}${typeof position === "number" ? "º" : ""}</div>
       <p class="muted">Scopri chi ti sta superando nella zona:</p>
       <div id="nearby-list" style="margin-top:.6rem;"></div>
-      <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;">
-        <button id="showReviewsBtn" class="show-reviews-btn">Mostra le recensioni</button>
-        <button id="improveBtn" class="improve-btn">💪 Migliora le tue recensioni ora</button>
+
+      <!-- WHATSAPP BUTTON (unico) -->
+      <div style="display:flex;justify-content:center;margin-top:1.5rem;">
+        <a 
+          href="https://wa.me/393534907105?text=Ciao%20👋%20Ho%20appena%20visto%20il%20mio%20posizionamento%20su%20Più%20Recensioni%20e%20vorrei%20migliorare%20la%20mia%20visibilità%20su%20Google.%20Puoi%20aiutarmi%3F"
+          target="_blank"
+          id="whatsappButton"
+          class="whatsapp-btn pulse-mobile"
+          style="
+            background: linear-gradient(90deg, #25D366 0%, #1EBE5A 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.9rem 1.8rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            text-decoration: none;
+            transition: all 0.25s ease;
+          "
+          onmouseover="this.style.transform='scale(1.05)'"
+          onmouseout="this.style.transform='scale(1)'"
+        >
+          💬 Migliora la tua posizione su Google
+        </a>
       </div>
     </div>
   `;
 
-  const showBtn = document.getElementById("showReviewsBtn");
-  const improveBtn = document.getElementById("improveBtn");
-  showBtn && showBtn.addEventListener("click", () => {
-    const r = document.getElementById("reviews-list");
-    if (r) {
-      r.scrollIntoView({ behavior: "smooth", block: "center" });
-      r.classList.add("highlight");
-      setTimeout(() => r.classList.remove("highlight"), 1400);
-    }
-  });
-  improveBtn && improveBtn.addEventListener("click", () => {
-    window.location.href = "https://wa.me/393000000000?text=Ciao!%20Vorrei%20migliorare%20le%20recensioni%20del%20mio%20profilo";
-  });
+  // Vibrazione al tocco (solo dispositivi che supportano Vibration API)
+  const whatsappBtn = document.getElementById("whatsappButton");
+  if (whatsappBtn) {
+    whatsappBtn.addEventListener("click", () => {
+      if (navigator.vibrate) {
+        navigator.vibrate(50); // vibrazione breve 50ms
+      }
+    });
+  }
 }
 
 function renderNearbyPlaces(list, position) {
