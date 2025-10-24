@@ -110,18 +110,22 @@ window.initApp = function initApp() {
 
 // ===================== AUTOCOMPLETE =====================
 let debounceTimer = null;
+const acContainer = document.createElement("div");
+acContainer.className = "autocomplete-results hidden";
+inputEl.parentElement.appendChild(acContainer);
+
 function attachInputEvents() {
   inputEl.addEventListener("input", () => {
     const q = (inputEl.value || "").trim();
-    if (q.length < 3) return (acContainer.classList.add("hidden"), acContainer.innerHTML = "");
+    if (q.length < 3) {
+      acContainer.classList.add("hidden");
+      acContainer.innerHTML = "";
+      return;
+    }
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => showPredictions(q), 220);
   });
 }
-
-const acContainer = document.createElement("div");
-acContainer.className = "autocomplete-results hidden";
-inputEl.parentElement.appendChild(acContainer);
 
 function showPredictions(query) {
   autocompleteService.getPlacePredictions(
@@ -137,7 +141,11 @@ function showPredictions(query) {
         const el = document.createElement("div");
         el.className = "autocomplete-item";
         el.innerHTML = `<strong>${escapeHtml(p.structured_formatting.main_text)}</strong><div style="font-size:.9rem;color:rgba(255,255,255,.8)">${escapeHtml(p.structured_formatting.secondary_text)}</div>`;
-        el.onclick = () => { inputEl.value = p.description; acContainer.classList.add("hidden"); fetchPlaceDetails(p.place_id); };
+        el.onclick = () => {
+          inputEl.value = p.description;
+          acContainer.classList.add("hidden");
+          fetchPlaceDetails(p.place_id);
+        };
         acContainer.appendChild(el);
       });
       acContainer.classList.remove("hidden");
@@ -206,41 +214,33 @@ function showPlaceAndRank(details) {
 function buildRealRanking(targetDetails, cat) {
   const location = getSafe(targetDetails, "geometry.location", null);
   if (!location) return showMessage("Posizione non trovata.");
-
   const center = new google.maps.LatLng(location.lat(), location.lng());
+
   const cacheKey = "rank_" + targetDetails.place_id;
   const cachedRank = getCached(cacheKey);
   if (cachedRank) return finalizeRanking(targetDetails, cachedRank.center, cachedRank.rawList);
 
-  // 🔍 ricerca intelligente
-  const useTextSearch = ["restaurant", "pharmacy", "gym", "beauty_salon", "bakery", "supermarket"].includes(cat.type);
-  const query = cat.keyword || cat.type;
-
   const reqNearby = { location: center, radius: 5000, type: cat.type, language: "it" };
-  const reqText = { location: center, radius: 5000, query: query, language: "it" };
-
+  const reqText = { location: center, radius: 5000, query: cat.keyword || cat.type, language: "it" };
   renderRankingCard("…");
 
   const handleResults = (res) => {
-    // filtro risultati non coerenti (es. hotel in ristoranti)
     if (cat.type === "restaurant") {
-      res = res.filter(p => (p.types || []).includes("restaurant"));
+      const filtered = res.filter(p => (p.types || []).includes("restaurant"));
+      if (filtered.length > 0) res = filtered;
     }
     setCached(cacheKey, { center, rawList: res });
     finalizeRanking(targetDetails, center, res);
   };
 
-  if (useTextSearch) {
-    placesService.textSearch(reqText, (res, st) => {
-      if (st === google.maps.places.PlacesServiceStatus.OK && res?.length) handleResults(res);
-      else placesService.nearbySearch(reqNearby, (_, __) => handleResults(_ || []));
-    });
-  } else {
-    placesService.nearbySearch(reqNearby, (res, st) => {
-      if (st === google.maps.places.PlacesServiceStatus.OK && res?.length) handleResults(res);
-      else placesService.textSearch(reqText, (_, __) => handleResults(_ || []));
-    });
-  }
+  // 🔍 Forziamo textSearch + fallback nearby
+  placesService.textSearch(reqText, (res, st) => {
+    if (st === google.maps.places.PlacesServiceStatus.OK && res?.length) {
+      handleResults(res);
+    } else {
+      placesService.nearbySearch(reqNearby, (res2) => handleResults(res2 || []));
+    }
+  });
 }
 
 // ===================== FINAL RENDER =====================
@@ -304,7 +304,7 @@ function renderNearbyPlaces(list, target) {
   });
   html += `</div>`;
 
-  // --- Analisi comparativa (solo giallo/rosso) ---
+  // --- Analisi comparativa (sempre giallo/rosso) ---
   const avgR = list.reduce((s, x) => s + x.rating, 0) / list.length;
   const avgT = list.reduce((s, x) => s + x.total, 0) / list.length;
   const diffR = target.rating - avgR;
