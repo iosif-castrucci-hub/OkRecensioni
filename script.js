@@ -107,6 +107,38 @@ function showPlace(details) {
     renderReviews(details, reviewsDiv);
 }
 
+function detectBusinessType(name, types) {
+  const lowered = name.toLowerCase();
+  const keywords = [
+    "pizzeria",
+    "ristorante",
+    "trattoria",
+    "bar",
+    "gelateria",
+    "pasticceria",
+    "panificio",
+    "pub",
+    "enoteca",
+    "osteria",
+    "agriturismo",
+    "hotel",
+    "b&b",
+    "ristopub",
+  ];
+
+  for (const k of keywords) {
+    if (lowered.includes(k)) return k;
+  }
+
+  // fallback sui types di Google
+  if (types?.includes("restaurant")) return "restaurant";
+  if (types?.includes("bar")) return "bar";
+  if (types?.includes("cafe")) return "cafe";
+  if (types?.includes("lodging")) return "hotel";
+
+  return "restaurant"; // default
+}
+
 function loadNearbyCompetitors(details) {
   const leaderboard = document.getElementById("leaderboard");
   leaderboard.innerHTML = "<p class='muted'>Caricamento attività vicine...</p>";
@@ -116,14 +148,14 @@ function loadNearbyCompetitors(details) {
     return;
   }
 
-  const mainType = details.types?.[0] || "restaurant";
+  const businessType = detectBusinessType(details.name, details.types);
   const request = {
     location: details.geometry.location,
-    radius: 2500, // 2.5 km intorno
-    type: mainType,
+    radius: 2500,
+    keyword: businessType,
+    type: "establishment",
   };
 
-  // timeout di sicurezza (8 secondi)
   const fallbackTimeout = setTimeout(() => {
     leaderboard.innerHTML =
       "<p class='muted'>Non è stato possibile ottenere attività vicine al momento.</p>";
@@ -133,7 +165,8 @@ function loadNearbyCompetitors(details) {
     clearTimeout(fallbackTimeout);
 
     if (status !== google.maps.places.PlacesServiceStatus.OK || !results?.length) {
-      // fallback generico
+      // fallback più generico
+      request.keyword = "restaurant";
       request.type = "food";
       placesService.nearbySearch(request, (altResults, altStatus) => {
         if (altStatus === google.maps.places.PlacesServiceStatus.OK && altResults.length) {
@@ -160,7 +193,7 @@ function renderCompetitors(details, results) {
       const distanceKm =
         google.maps.geometry?.spherical?.computeDistanceBetween
           ? google.maps.geometry.spherical.computeDistanceBetween(origin, r.geometry.location) / 1000
-          : Math.random() * 3 + 0.5; // fallback finto in km
+          : Math.random() * 3 + 0.5;
       return {
         name: r.name,
         rating: r.rating,
