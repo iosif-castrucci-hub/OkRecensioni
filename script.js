@@ -1,258 +1,4 @@
-let autocompleteService, placesService, inputEl, resultsContainer;
-
-function initApp() {
-  if (!google || !google.maps || !google.maps.places) return;
-
-  autocompleteService = new google.maps.places.AutocompleteService();
-  placesService = new google.maps.places.PlacesService(document.createElement("div"));
-  inputEl = document.getElementById("place-input");
-
-  resultsContainer = document.createElement("div");
-  resultsContainer.className = "autocomplete-results glass";
-  inputEl.parentNode.appendChild(resultsContainer);
-
-  inputEl.addEventListener("input", handleInput);
-  document.addEventListener("click", (e) => {
-    if (!resultsContainer.contains(e.target) && e.target !== inputEl)
-      resultsContainer.innerHTML = "";
-  });
-}
-
-function handleInput() {
-  const q = inputEl.value.trim();
-  resultsContainer.innerHTML = "";
-  if (!q) return;
-
-  autocompleteService.getPlacePredictions(
-    { input: q, types: ["establishment"], componentRestrictions: { country: "it" } },
-    (predictions, status) => {
-      if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions?.length) return;
-      renderPredictions(predictions.slice(0, 6));
-    }
-  );
-}
-
-function renderPredictions(list) {
-  resultsContainer.innerHTML = "";
-  list.forEach((p) => {
-    const item = document.createElement("div");
-    item.className = "autocomplete-item";
-    item.textContent = p.description;
-    item.onclick = () => selectPlace(p.place_id, p.description);
-    resultsContainer.appendChild(item);
-  });
-}
-
-function selectPlace(placeId, description) {
-  resultsContainer.innerHTML = "";
-  inputEl.value = description;
-
-  placesService.getDetails(
-    {
-      placeId,
-      fields: [
-        "name",
-        "formatted_address",
-        "rating",
-        "user_ratings_total",
-        "reviews",
-        "geometry",
-        "types",
-      ],
-    },
-    (details, status) => {
-      if (status !== google.maps.places.PlacesServiceStatus.OK || !details) {
-        showMessage("Impossibile ottenere dettagli dell’attività.");
-        return;
-      }
-      showPlace(details);
-    }
-  );
-}
-
-function showPlace(details) {
-  const card = document.getElementById("place-card");
-  const noRes = document.getElementById("no-results");
-  const nameEl = document.getElementById("place-name");
-  const addrEl = document.getElementById("place-address");
-  const ratingEl = document.getElementById("place-rating");
-  const reviewsDiv = document.getElementById("reviews-list");
-
-  noRes.classList.add("hidden");
-  card.classList.remove("hidden");
-
-  nameEl.textContent = details.name;
-  addrEl.textContent = details.formatted_address;
-  ratingEl.innerHTML = details.rating
-    ? `⭐ ${details.rating} (${details.user_ratings_total} recensioni)`
-    : "Nessuna valutazione";
-
-  const pos = Math.floor(Math.random() * 8) + 8; // posizione stimata casuale (8º–15º)
-  reviewsDiv.innerHTML = `
-    <div class="ranking-card glass">
-      <h3>📊 Il tuo posizionamento stimato</h3>
-      <div class="rank-number">${pos}º</div>
-      <p class="muted">Scopri chi ti sta superando nella zona:</p>
-      <div id="leaderboard" class="leaderboard"></div>
-      <button id="showReviewsBtn" class="show-reviews-btn">Mostra le recensioni</button>
-      <button class="improve-btn" onclick="window.location.href='migliora.html'">
-        💪 Migliora le tue recensioni ora
-      </button>
-    </div>
-  `;
-
-  loadNearbyCompetitors(details);
-
-  document.getElementById("showReviewsBtn").onclick = () =>
-    renderReviews(details, reviewsDiv);
-}
-
-function detectBusinessType(name, types) {
-  const lowered = name.toLowerCase();
-  const keywords = [
-    "pizzeria",
-    "ristorante",
-    "trattoria",
-    "bar",
-    "gelateria",
-    "pasticceria",
-    "panificio",
-    "pub",
-    "enoteca",
-    "osteria",
-    "agriturismo",
-    "hotel",
-    "b&b",
-    "ristopub",
-  ];
-
-  for (const k of keywords) {
-    if (lowered.includes(k)) return k;
-  }
-
-  // fallback sui types di Google
-  if (types?.includes("restaurant")) return "restaurant";
-  if (types?.includes("bar")) return "bar";
-  if (types?.includes("cafe")) return "cafe";
-  if (types?.includes("lodging")) return "hotel";
-
-  return "restaurant"; // default
-}
-
-function loadNearbyCompetitors(details) {
-  const leaderboard = document.getElementById("leaderboard");
-  leaderboard.innerHTML = "<p class='muted'>Caricamento attività vicine...</p>";
-
-  if (!details.geometry?.location) {
-    leaderboard.innerHTML = "<p class='muted'>Posizione non disponibile.</p>";
-    return;
-  }
-
-  const businessType = detectBusinessType(details.name, details.types);
-  const request = {
-    location: details.geometry.location,
-    radius: 2500,
-    keyword: businessType,
-    type: "establishment",
-  };
-
-  const fallbackTimeout = setTimeout(() => {
-    leaderboard.innerHTML =
-      "<p class='muted'>Non è stato possibile ottenere attività vicine al momento.</p>";
-  }, 8000);
-
-  placesService.nearbySearch(request, (results, status) => {
-    clearTimeout(fallbackTimeout);
-
-    if (status !== google.maps.places.PlacesServiceStatus.OK || !results?.length) {
-      // fallback più generico
-      request.keyword = "restaurant";
-      request.type = "food";
-      placesService.nearbySearch(request, (altResults, altStatus) => {
-        if (altStatus === google.maps.places.PlacesServiceStatus.OK && altResults.length) {
-          renderCompetitors(details, altResults);
-        } else {
-          leaderboard.innerHTML =
-            "<p class='muted'>Nessuna attività simile trovata nella zona.</p>";
-        }
-      });
-      return;
-    }
-
-    renderCompetitors(details, results);
-  });
-}
-
-function renderCompetitors(details, results) {
-  const leaderboard = document.getElementById("leaderboard");
-
-  const origin = details.geometry.location;
-  const nearby = results
-    .filter((r) => r.name !== details.name && r.rating)
-    .map((r) => {
-      const distanceKm =
-        google.maps.geometry?.spherical?.computeDistanceBetween
-          ? google.maps.geometry.spherical.computeDistanceBetween(origin, r.geometry.location) / 1000
-          : Math.random() * 3 + 0.5;
-      return {
-        name: r.name,
-        rating: r.rating,
-        reviews: r.user_ratings_total || 0,
-        distance: distanceKm.toFixed(1),
-      };
-    })
-    .sort((a, b) => b.rating - a.rating)
-    .slice(0, 7);
-
-  if (!nearby.length) {
-    leaderboard.innerHTML =
-      "<p class='muted'>Nessuna attività concorrente trovata.</p>";
-    return;
-  }
-
-  leaderboard.innerHTML = `<h4 class="leaderboard-title">🏆 Attività più visibili nella tua zona</h4>` +
-    nearby
-      .map(
-        (c) => `
-      <div class="competitor-card glass">
-        <div class="competitor-info">
-          <div class="competitor-name">${escapeHtml(c.name)}</div>
-          <div class="competitor-meta">
-            ⭐ ${c.rating.toFixed(1)} · ${c.reviews} recensioni · 📍 ${c.distance} km
-          </div>
-        </div>
-      </div>`
-      )
-      .join("");
-}
-
-function renderReviews(details, container) {
-  container.innerHTML = "";
-  if (!details.reviews?.length) {
-    container.innerHTML = "<p class='muted'>Nessuna recensione disponibile.</p>";
-    return;
-  }
-
-  details.reviews.slice(0, 5).forEach((r) => {
-    const div = document.createElement("div");
-    div.className = "review";
-    div.innerHTML = `
-      <strong>${escapeHtml(r.author_name)}</strong>
-      <span class="muted">${r.relative_time_description || ""}</span>
-      <p>${escapeHtml(r.text)}</p>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function showMessage(msg) {
-  const card = document.getElementById("place-card");
-  const noRes = document.getElementById("no-results");
-  card.classList.add("hidden");
-  noRes.classList.remove("hidden");
-  noRes.innerHTML = `<p>${escapeHtml(msg)}</p>`;
-}
-
+// ===================== UTILITIES =====================
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, "&amp;")
@@ -262,4 +8,354 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
-window.initApp = initApp;
+function log1p(n) {
+  return Math.log(1 + Math.max(0, n));
+}
+
+function formatDistance(meters) {
+  if (!meters && meters !== 0) return "";
+  if (meters >= 1000) return (meters / 1000).toFixed(1) + " km";
+  return Math.round(meters) + " m";
+}
+
+function getSafe(obj, path, def = "") {
+  try {
+    return path.split(".").reduce((o, k) => (o || {})[k], obj) ?? def;
+  } catch {
+    return def;
+  }
+}
+
+// Haversine: distanza in metri
+function distanceMeters(fromLatLng, toLocation) {
+  try {
+    if (!fromLatLng || !toLocation) return 0;
+    const R = 6371000;
+    const lat1 = fromLatLng.lat();
+    const lon1 = fromLatLng.lng();
+    const lat2 = (typeof toLocation.lat === "function") ? toLocation.lat() : toLocation.lat;
+    const lon2 = (typeof toLocation.lng === "function") ? toLocation.lng() : toLocation.lng;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+              Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  } catch {
+    return 0;
+  }
+}
+
+// Punteggio composito: rating (forte), recensioni (attenuate), distanza (penalità)
+function scorePlace({ rating = 0, total = 0, distanceM = 0 }) {
+  const distKm = distanceM / 1000;
+  return rating * 20 + log1p(total) * 3 - distKm * 1.2;
+}
+
+// ===================== DOM SHORTCUTS =====================
+const inputEl = document.getElementById("place-input");
+const noResultsEl = document.getElementById("no-results");
+const placeCardEl = document.getElementById("place-card");
+const placeNameEl = document.getElementById("place-name");
+const placeAddrEl = document.getElementById("place-address");
+const placeRatingEl = document.getElementById("place-rating");
+const reviewsDiv = document.getElementById("reviews-list");
+
+// Autocomplete dropdown
+const acContainer = document.createElement("div");
+acContainer.className = "autocomplete-results hidden";
+inputEl.parentElement.appendChild(acContainer);
+
+// ===================== GOOGLE PLACES SETUP =====================
+let mapDummy = null;
+let placesService = null;
+let autocompleteService = null;
+
+window.initApp = function initApp() {
+  const dummy = document.createElement("div");
+  dummy.style.display = "none";
+  document.body.appendChild(dummy);
+  mapDummy = new google.maps.Map(dummy);
+
+  placesService = new google.maps.places.PlacesService(mapDummy);
+  autocompleteService = new google.maps.places.AutocompleteService();
+
+  attachInputEvents();
+  showMessage("Inizia digitando il nome della tua attività sopra 👆");
+};
+
+// ===================== AUTOCOMPLETE =====================
+let debounceTimer = null;
+
+function attachInputEvents() {
+  inputEl.addEventListener("input", () => {
+    const q = (inputEl.value || "").trim();
+    if (q.length < 3) {
+      acContainer.innerHTML = "";
+      acContainer.classList.add("hidden");
+      return;
+    }
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => showPredictions(q), 220);
+  });
+
+  inputEl.addEventListener("focus", () => {
+    if (acContainer.innerHTML) acContainer.classList.remove("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!acContainer.contains(e.target) && e.target !== inputEl) {
+      acContainer.classList.add("hidden");
+    }
+  });
+
+  // UX placeholder
+  const ph = inputEl.getAttribute("placeholder") || "";
+  inputEl.addEventListener("focus", () => inputEl.setAttribute("placeholder",""));
+  inputEl.addEventListener("blur", () => { if (!inputEl.value) inputEl.setAttribute("placeholder", ph); });
+}
+
+function showPredictions(query) {
+  autocompleteService.getPlacePredictions(
+    { input: query, language: "it", types: ["establishment"] },
+    (preds, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !preds || !preds.length) {
+        acContainer.innerHTML = "<div class='autocomplete-item muted'>Nessun risultato</div>";
+        acContainer.classList.remove("hidden");
+        return;
+      }
+      acContainer.innerHTML = "";
+      preds.slice(0, 6).forEach(p => {
+        const el = document.createElement("div");
+        el.className = "autocomplete-item";
+        const main = escapeHtml(getSafe(p, "structured_formatting.main_text",""));
+        const sec  = escapeHtml(getSafe(p, "structured_formatting.secondary_text",""));
+        el.innerHTML = `<strong>${main}</strong><div style="font-size:.9rem;color:rgba(255,255,255,.8)">${sec}</div>`;
+        el.addEventListener("click", () => {
+          inputEl.value = p.description;
+          acContainer.classList.add("hidden");
+          fetchPlaceDetails(p.place_id);
+        });
+        acContainer.appendChild(el);
+      });
+      acContainer.classList.remove("hidden");
+    }
+  );
+}
+
+// ===================== CATEGORY DETECTION =====================
+// Mappa keyword IT -> {type, keyword facoltativo}
+const CATEGORY_MAP = [
+  { test: /pizz|pizzeria/i,           type: "restaurant", keyword: "pizzeria" },
+  { test: /trattor/i,                 type: "restaurant", keyword: "trattoria" },
+  { test: /ristorant/i,               type: "restaurant", keyword: "" },
+  { test: /osteria/i,                 type: "restaurant", keyword: "osteria" },
+  { test: /sushi|giappo/i,            type: "restaurant", keyword: "sushi" },
+  { test: /kebab/i,                   type: "restaurant", keyword: "kebab" },
+  { test: /gelat|ice\s?cream/i,       type: "cafe",       keyword: "gelateria" },
+  { test: /bar|pub/i,                 type: "bar",        keyword: "" },
+  { test: /caff[eè]/i,                type: "cafe",       keyword: "" },
+  { test: /panetter|forn|bakery/i,    type: "bakery",     keyword: "" },
+  { test: /hotel|alberg|b&b|bnb/i,    type: "lodging",    keyword: "" },
+  { test: /pasticc|pastry/i,          type: "bakery",     keyword: "pasticceria" },
+  // fallback generico food
+  { test: /food|cucina|mangiare/i,    type: "restaurant", keyword: "" },
+];
+
+function detectCategory(queryText, placeTypes = []) {
+  const q = (queryText || "").toLowerCase();
+  for (const row of CATEGORY_MAP) {
+    if (row.test.test(q)) return { type: row.type, keyword: row.keyword };
+  }
+  // Dai tipi di Google (se noti un tipo specifico passiamo a quello)
+  const t = (placeTypes || []).map(t => t.toLowerCase());
+  if (t.includes("lodging"))     return { type: "lodging",    keyword: "" };
+  if (t.includes("bar"))         return { type: "bar",        keyword: "" };
+  if (t.includes("cafe"))        return { type: "cafe",       keyword: "" };
+  if (t.includes("bakery"))      return { type: "bakery",     keyword: "" };
+  if (t.includes("restaurant"))  return { type: "restaurant", keyword: "" };
+  // fallback
+  return { type: "restaurant", keyword: "" };
+}
+
+// ===================== PLACE DETAILS + RANKING =====================
+function fetchPlaceDetails(placeId) {
+  showMessage("Caricamento dettagli attività...");
+  placesService.getDetails(
+    { placeId, fields: ["name","formatted_address","geometry","rating","user_ratings_total","types","place_id"] },
+    (details, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !details) {
+        showMessage("Impossibile recuperare i dettagli dell'attività.");
+        return;
+      }
+      showPlaceAndRank(details);
+    }
+  );
+}
+
+function showPlaceAndRank(details) {
+  // header card
+  noResultsEl.classList.add("hidden");
+  placeCardEl.classList.remove("hidden");
+  placeNameEl.textContent = getSafe(details,"name","Attività");
+  placeAddrEl.textContent = getSafe(details,"formatted_address","");
+  const r = getSafe(details,"rating",null);
+  const n = getSafe(details,"user_ratings_total",null);
+  placeRatingEl.innerHTML = r ? `⭐ <strong>${escapeHtml(String(r))}</strong> ${n ? `· (${n} recensioni)` : ""}` : "";
+
+  // categoria per i vicini
+  const { type, keyword } = detectCategory(inputEl.value, details.types);
+
+  // posizione / lista vicini
+  buildRealRanking(details, { type, keyword });
+}
+
+function buildRealRanking(targetDetails, cat) {
+  const location = getSafe(targetDetails, "geometry.location", null);
+  if (!location) {
+    renderRankingCard("—");
+    renderNearbyPlaces([], 0);
+    return;
+  }
+  const center = new google.maps.LatLng(location.lat(), location.lng());
+
+  // Prima nearbySearch coerente con la categoria
+  const nearbyReq = {
+    location: center,
+    radius: 2500,       // 2.5 km
+    type: cat.type,
+    language: "it"
+  };
+  if (cat.keyword) nearbyReq.keyword = cat.keyword;
+
+  // fallback text search (per categorie "difficili")
+  const textReq = {
+    location: center,
+    radius: 2500,
+    query: cat.keyword ? `${cat.keyword} ${cat.type}` : cat.type,
+    language: "it"
+  };
+
+  renderRankingCard("…");
+  const loadingId = renderLoadingNearby();
+
+  placesService.nearbySearch(nearbyReq, (res, st) => {
+    if (st !== google.maps.places.PlacesServiceStatus.OK || !res || !res.length) {
+      // fallback
+      placesService.textSearch(textReq, (res2, st2) => {
+        finalizeRanking(targetDetails, center, res2 || []);
+      });
+    } else {
+      finalizeRanking(targetDetails, center, res);
+    }
+  });
+
+  function renderLoadingNearby() {
+    // la card verrà aggiornata in renderNearbyPlaces
+    return Date.now();
+  }
+}
+
+function finalizeRanking(targetDetails, center, rawList) {
+  // Mappa i risultati grezzi
+  const mapped = (rawList || []).map(p => ({
+    place_id: getSafe(p,"place_id",""),
+    name: getSafe(p,"name",""),
+    rating: getSafe(p,"rating",0),
+    total: getSafe(p,"user_ratings_total",0),
+    distanceM: distanceMeters(center, getSafe(p,"geometry.location",null))
+  }));
+
+  // Inseriamo anche l'attività target (se non presente in lista)
+  const target = {
+    place_id: getSafe(targetDetails,"place_id",""),
+    name: getSafe(targetDetails,"name",""),
+    rating: getSafe(targetDetails,"rating",0),
+    total: getSafe(targetDetails,"user_ratings_total",0),
+    distanceM: 0 // è il centro
+  };
+  const exists = mapped.some(m => m.place_id === target.place_id);
+  if (!exists) mapped.push(target);
+
+  // Calcolo punteggi e ordinamento
+  const withScore = mapped.map(m => ({ ...m, score: scorePlace(m) }));
+  withScore.sort((a,b) => b.score - a.score);
+
+  // Posizione reale dell'attività cercata
+  const idx = withScore.findIndex(x => x.place_id === target.place_id);
+  const position = idx >= 0 ? idx + 1 : "—";
+
+  // Disegna card + “chi ti supera”
+  renderRankingCard(position);
+
+  // attività che ti superano (quelle davanti a te)
+  let ahead = [];
+  if (typeof position === "number") {
+    ahead = withScore.slice(0, Math.max(0, position - 1));
+  }
+  // mostriamo max 7 top davanti
+  renderNearbyPlaces(ahead.slice(0,7), position);
+}
+
+// ===================== RENDERING =====================
+function renderRankingCard(position) {
+  reviewsDiv.innerHTML = `
+    <div class="ranking-card glass">
+      <h3>📊 Il tuo posizionamento stimato</h3>
+      <p class="muted">Il tuo posizionamento nella ricerca locale:</p>
+      <div class="rank-number">${position}${typeof position === "number" ? "º" : ""}</div>
+      <p class="muted">Scopri chi ti sta superando nella zona:</p>
+      <div id="nearby-list" style="margin-top:.6rem;"></div>
+      <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;">
+        <button id="showReviewsBtn" class="show-reviews-btn">Mostra le recensioni</button>
+        <button id="improveBtn" class="improve-btn">💪 Migliora le tue recensioni ora</button>
+      </div>
+    </div>
+  `;
+
+  const showBtn = document.getElementById("showReviewsBtn");
+  const improveBtn = document.getElementById("improveBtn");
+  showBtn && showBtn.addEventListener("click", () => {
+    const r = document.getElementById("reviews-list");
+    if (r) {
+      r.scrollIntoView({ behavior: "smooth", block: "center" });
+      r.classList.add("highlight");
+      setTimeout(() => r.classList.remove("highlight"), 1400);
+    }
+  });
+  improveBtn && improveBtn.addEventListener("click", () => {
+    window.location.href = "https://wa.me/393000000000?text=Ciao!%20Vorrei%20migliorare%20le%20recensioni%20del%20mio%20profilo";
+  });
+}
+
+function renderNearbyPlaces(list, position) {
+  const box = document.getElementById("nearby-list");
+  if (!box) return;
+
+  if (!list || list.length === 0) {
+    box.innerHTML = `<p class="muted">Al momento non abbiamo trovato attività che ti superano in zona.</p>`;
+    return;
+  }
+
+  let html = `<h4>🏆 Attività più visibili nella tua zona</h4>`;
+  html += `<div style="display:flex;flex-direction:column;gap:.7rem;margin-top:.6rem;">`;
+  list.forEach(item => {
+    html += `
+      <div class="service-card glass" style="padding:1rem;border-radius:12px;">
+        <div style="font-weight:700;font-size:1.05rem;color:#fff">${escapeHtml(item.name)}</div>
+        <div style="color:rgba(255,255,255,.85);font-size:.95rem;margin-top:.3rem;">
+          <span style="color:gold;">⭐ ${item.rating.toFixed(1)}</span> · ${item.total} recensioni · 📍 ${formatDistance(item.distanceM)}
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  box.innerHTML = html;
+}
+
+function showMessage(msg) {
+  noResultsEl.classList.remove("hidden");
+  placeCardEl.classList.add("hidden");
+  noResultsEl.innerHTML = `<p>${escapeHtml(msg)}</p>`;
+}
