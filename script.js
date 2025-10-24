@@ -216,16 +216,16 @@ function buildRealRanking(targetDetails, cat) {
   if (!location) return showMessage("Posizione non trovata.");
   const center = new google.maps.LatLng(location.lat(), location.lng());
 
-  const reqNearby = { location: center, radius: 10000, type: cat.type, language: "it" }; // 10 km
-  if (cat.keyword) reqNearby.keyword = cat.keyword;
-
+  const reqNearby = { location: center, radius: 10000, type: cat.type, keyword: cat.keyword, language: "it" }; // 🔥 10 km
   renderRankingCard("…");
 
   placesService.nearbySearch(reqNearby, (res, st) => {
-    if (st !== google.maps.places.PlacesServiceStatus.OK || !res?.length) {
-      const textReq = { query: cat.keyword || cat.type, location: center, radius: 10000, language: "it" };
+    if (st === google.maps.places.PlacesServiceStatus.OK && res?.length) {
+      finalizeRanking(targetDetails, center, res);
+    } else {
+      const textReq = { query: `${cat.keyword || cat.type} vicino a ${targetDetails.formatted_address}`, language: "it" };
       placesService.textSearch(textReq, (res2) => finalizeRanking(targetDetails, center, res2 || []));
-    } else finalizeRanking(targetDetails, center, res);
+    }
   });
 }
 
@@ -291,14 +291,11 @@ function renderNearbyPlaces(list, target) {
   });
   html += `</div>`;
 
-  // --- Analisi comparativa ---
   if (target && list.length > 0) {
     const avgR = list.reduce((s, x) => s + x.rating, 0) / list.length;
     const avgT = list.reduce((s, x) => s + x.total, 0) / list.length;
-    const diffR = target.rating - avgR;
-    const diffT = target.total - avgT;
-    const color = diffR < -0.2 || diffT < -20 ? "#FF5252" : "#FFC107";
-    const trend = diffR < -0.2
+    const color = target.rating < avgR ? "#FF5252" : "#FFC107";
+    const trend = target.rating < avgR
       ? "⚠️ Il tuo rating è inferiore alla media nella tua zona."
       : "😐 Hai un punteggio simile alla media locale.";
     html += `<div style="margin-top:1.5rem;padding:1rem;border-radius:12px;background:rgba(255,255,255,0.08);font-size:.95rem;">
