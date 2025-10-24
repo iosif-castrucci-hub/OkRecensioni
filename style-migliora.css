@@ -189,4 +189,21 @@
     animation: pulse 2.8s infinite;
   }
 }
+/* ===== HEADER CARD PIÙ PICCOLA + LOGO PIÙ GRANDE ===== */
+.header {
+  max-width: 600px; /* riduce la larghezza della card */
+  padding: 1rem 1.5rem; /* riduce i padding interni */
+  gap: 1.5rem; /* lascia spazio tra logo e testo */
+}
+
+.header-logo {
+  width: 160px; /* ingrandisce il logo */
+  height: 160px;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+}
+
+.header-title {
+  font-size: 2.2rem; /* leggermente più grande per bilanciare il logo */
+  font-weight: 700;
+}
 
