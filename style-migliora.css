@@ -168,4 +168,25 @@
   font-size: 0.9rem;
   color: rgba(255,255,255,0.8);
 }
+/* ===== WHATSAPP BUTTON PULSE (SOLO MOBILE) ===== */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.6);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .pulse-mobile {
+    animation: pulse 2.8s infinite;
+  }
+}
 
