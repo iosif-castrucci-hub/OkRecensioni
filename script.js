@@ -223,7 +223,7 @@ function buildRealRanking(targetDetails, cat) {
   // Prima nearbySearch coerente con la categoria
   const nearbyReq = {
     location: center,
-    radius: 2500,       // 2.5 km
+    radius: 5000,       // 5 km
     type: cat.type,
     language: "it"
   };
