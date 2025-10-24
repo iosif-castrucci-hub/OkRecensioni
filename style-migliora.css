@@ -194,12 +194,12 @@
   max-width: 1000px; /* riduce la larghezza della card */
   padding: 0.6rem 1.5rem; /* riduce i padding interni */
   height: auto;
-  gap: 0.1rem; /* lascia spazio tra logo e testo */
+  gap: 1.2rem; /* lascia spazio tra logo e testo */
 }
 
 .header-logo {
   width: 240px; /* ingrandisce il logo */
-  height: 240px;
+  height: 160px;
   filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
 }
 
