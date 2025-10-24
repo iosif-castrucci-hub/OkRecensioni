@@ -85,7 +85,7 @@ function distanceMeters(fromLatLng, toLocation) {
 
 // ===================== SCORE =====================
 function scorePlace({ rating = 0, total = 0, distanceM = 0 }) {
-  const distKm = distanceM / 1000;
+  const distKm = distanceM / 10000;
   return rating * 20 + log1p(total) * 3 - distKm * 1.2;
 }
 
@@ -176,13 +176,13 @@ function showPredictions(query) {
 const CATEGORY_MAP = [
   { test: /pizz|pizzeria/i, type: "restaurant", keyword: "pizzeria" },
   { test: /trattor/i, type: "restaurant", keyword: "trattoria" },
-  { test: /ristorant/i, type: "restaurant", keyword: "" },
+  { test: /ristorant/i, type: "restaurant", keyword: "ristorante" },
   { test: /osteria/i, type: "restaurant", keyword: "osteria" },
   { test: /sushi|giappo/i, type: "restaurant", keyword: "sushi" },
   { test: /kebab/i, type: "restaurant", keyword: "kebab" },
   { test: /gelat|ice\s?cream/i, type: "cafe", keyword: "gelateria" },
-  { test: /bar|pub/i, type: "bar", keyword: "" },
-  { test: /caff[eè]/i, type: "cafe", keyword: "" },
+  { test: /bar|pub/i, type: "bar", keyword: "bar" },
+  { test: /caff[eè]/i, type: "cafe", keyword: "caffetteria" },
   { test: /panetter|forn|bakery/i, type: "bakery", keyword: "" },
   { test: /hotel|alberg|b&b|bnb/i, type: "lodging", keyword: "" },
   { test: /pasticc|pastry/i, type: "bakery", keyword: "pasticceria" },
