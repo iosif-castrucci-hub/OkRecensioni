@@ -2,9 +2,11 @@ let autocompleteService, placesService, inputEl, resultsContainer;
 
 function initApp() {
   if (!google || !google.maps || !google.maps.places) return;
+
   autocompleteService = new google.maps.places.AutocompleteService();
   placesService = new google.maps.places.PlacesService(document.createElement("div"));
   inputEl = document.getElementById("place-input");
+
   resultsContainer = document.createElement("div");
   resultsContainer.className = "autocomplete-results glass";
   inputEl.parentNode.appendChild(resultsContainer);
@@ -20,6 +22,7 @@ function handleInput() {
   const q = inputEl.value.trim();
   resultsContainer.innerHTML = "";
   if (!q) return;
+
   autocompleteService.getPlacePredictions(
     { input: q, types: ["establishment"], componentRestrictions: { country: "it" } },
     (predictions, status) => {
@@ -43,10 +46,19 @@ function renderPredictions(list) {
 function selectPlace(placeId, description) {
   resultsContainer.innerHTML = "";
   inputEl.value = description;
+
   placesService.getDetails(
     {
       placeId,
-      fields: ["name", "formatted_address", "rating", "user_ratings_total", "reviews", "geometry"],
+      fields: [
+        "name",
+        "formatted_address",
+        "rating",
+        "user_ratings_total",
+        "reviews",
+        "geometry",
+        "types",
+      ],
     },
     (details, status) => {
       if (status !== google.maps.places.PlacesServiceStatus.OK || !details) {
@@ -75,7 +87,7 @@ function showPlace(details) {
     ? `⭐ ${details.rating} (${details.user_ratings_total} recensioni)`
     : "Nessuna valutazione";
 
-  const pos = Math.floor(Math.random() * 8) + 8; // posizione finta
+  const pos = Math.floor(Math.random() * 8) + 8; // posizione stimata casuale
   reviewsDiv.innerHTML = `
     <div class="ranking-card glass">
       <h3>📊 Il tuo posizionamento stimato</h3>
@@ -83,7 +95,9 @@ function showPlace(details) {
       <p class="muted">Scopri chi ti sta superando nella zona:</p>
       <div id="leaderboard" class="leaderboard"></div>
       <button id="showReviewsBtn" class="show-reviews-btn">Mostra le recensioni</button>
-      <button class="improve-btn" onclick="window.location.href='migliora.html'">💪 Migliora le tue recensioni ora</button>
+      <button class="improve-btn" onclick="window.location.href='migliora.html'">
+        💪 Migliora le tue recensioni ora
+      </button>
     </div>
   `;
 
@@ -102,38 +116,72 @@ function loadNearbyCompetitors(details) {
     return;
   }
 
+  const mainType = details.types?.[0] || "restaurant";
   const request = {
     location: details.geometry.location,
-    radius: 2000, // 2 km intorno
-    type: ["restaurant", "bar", "cafe", "food"],
+    radius: 2500, // 2.5 km intorno
+    type: mainType,
   };
 
   placesService.nearbySearch(request, (results, status) => {
     if (status !== google.maps.places.PlacesServiceStatus.OK || !results?.length) {
-      leaderboard.innerHTML = "<p class='muted'>Nessun concorrente trovato.</p>";
+      // fallback: ricerca generica per food
+      request.type = "food";
+      placesService.nearbySearch(request, (altResults, altStatus) => {
+        if (altStatus === google.maps.places.PlacesServiceStatus.OK && altResults.length) {
+          renderCompetitors(details, altResults);
+        } else {
+          leaderboard.innerHTML =
+            "<p class='muted'>Nessuna attività simile trovata nella zona.</p>";
+        }
+      });
       return;
     }
 
-    const nearby = results
-      .filter((r) => r.name !== details.name && r.rating)
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      .slice(0, 7);
-
-    leaderboard.innerHTML = `<h4 class="leaderboard-title">🏆 Attività più visibili nella tua zona</h4>` +
-      nearby
-        .map(
-          (c) => `
-          <div class="competitor-card glass">
-            <div class="competitor-info">
-              <div class="competitor-name">${escapeHtml(c.name)}</div>
-              <div class="competitor-meta">
-                ⭐ ${c.rating.toFixed(1)} · ${c.user_ratings_total || 0} recensioni
-              </div>
-            </div>
-          </div>`
-        )
-        .join("");
+    renderCompetitors(details, results);
   });
+}
+
+function renderCompetitors(details, results) {
+  const leaderboard = document.getElementById("leaderboard");
+
+  const origin = details.geometry.location;
+  const nearby = results
+    .filter((r) => r.name !== details.name && r.rating)
+    .map((r) => {
+      const distanceKm =
+        google.maps.geometry.spherical.computeDistanceBetween(origin, r.geometry.location) /
+        1000;
+      return {
+        name: r.name,
+        rating: r.rating,
+        reviews: r.user_ratings_total || 0,
+        distance: distanceKm.toFixed(1),
+      };
+    })
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 7);
+
+  if (!nearby.length) {
+    leaderboard.innerHTML =
+      "<p class='muted'>Nessuna attività concorrente trovata.</p>";
+    return;
+  }
+
+  leaderboard.innerHTML = `<h4 class="leaderboard-title">🏆 Attività più visibili nella tua zona</h4>` +
+    nearby
+      .map(
+        (c) => `
+      <div class="competitor-card glass">
+        <div class="competitor-info">
+          <div class="competitor-name">${escapeHtml(c.name)}</div>
+          <div class="competitor-meta">
+            ⭐ ${c.rating.toFixed(1)} · ${c.reviews} recensioni · 📍 ${c.distance} km
+          </div>
+        </div>
+      </div>`
+      )
+      .join("");
 }
 
 function renderReviews(details, container) {
@@ -142,6 +190,7 @@ function renderReviews(details, container) {
     container.innerHTML = "<p class='muted'>Nessuna recensione disponibile.</p>";
     return;
   }
+
   details.reviews.slice(0, 5).forEach((r) => {
     const div = document.createElement("div");
     div.className = "review";
