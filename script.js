@@ -26,57 +26,22 @@ function getSafe(obj, path, def = "") {
   }
 }
 
-// ===================== CACHE =====================
-const CACHE_KEY = "places_cache_v1";
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
-function loadCache() {
-  try {
-    const data = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
-    const now = Date.now();
-    for (const key in data) {
-      if (now - data[key].ts > CACHE_TTL_MS) delete data[key];
-    }
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    return data;
-  } catch {
-    return {};
-  }
-}
-
-function saveCache(c) {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch {}
-}
-
-function getCached(id) {
-  const c = loadCache();
-  return c[id]?.data || null;
-}
-
-function setCached(id, data) {
-  const c = loadCache();
-  c[id] = { ts: Date.now(), data };
-  saveCache(c);
-}
-
-// ===================== DISTANCES =====================
+// ===================== DISTANZA =====================
 function distanceMeters(fromLatLng, toLocation) {
-  if (!fromLatLng || !toLocation) return 0;
   try {
+    if (!fromLatLng || !toLocation) return 0;
     const R = 6371000;
-    const lat1 = typeof fromLatLng.lat === "function" ? fromLatLng.lat() : fromLatLng.lat;
-    const lon1 = typeof fromLatLng.lng === "function" ? fromLatLng.lng() : fromLatLng.lng;
-    const lat2 = typeof toLocation.lat === "function" ? toLocation.lat() : toLocation.lat;
-    const lon2 = typeof toLocation.lng === "function" ? toLocation.lng() : toLocation.lng;
-    if ([lat1, lon1, lat2, lon2].some(v => typeof v !== "number" || isNaN(v))) return 0;
-
+    const lat1 = fromLatLng.lat();
+    const lon1 = fromLatLng.lng();
+    const lat2 = (typeof toLocation.lat === "function") ? toLocation.lat() : toLocation.lat;
+    const lon2 = (typeof toLocation.lng === "function") ? toLocation.lng() : toLocation.lng;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat/2)**2 +
               Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
               Math.sin(dLon/2)**2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return Math.round(R * c);
+    return R * c;
   } catch {
     return 0;
   }
@@ -88,7 +53,7 @@ function scorePlace({ rating = 0, total = 0, distanceM = 0 }) {
   return rating * 20 + log1p(total) * 3 - distKm * 1.2;
 }
 
-// ===================== DOM SHORTCUTS =====================
+// ===================== DOM =====================
 const inputEl = document.getElementById("place-input");
 const noResultsEl = document.getElementById("no-results");
 const placeCardEl = document.getElementById("place-card");
@@ -99,6 +64,7 @@ const reviewsDiv = document.getElementById("reviews-list");
 
 // ===================== GOOGLE PLACES =====================
 let mapDummy, placesService, autocompleteService;
+const SEARCH_RADIUS = 10000; // 🔥 10 km
 
 window.initApp = function initApp() {
   const dummy = document.createElement("div");
@@ -156,7 +122,7 @@ function showPredictions(query) {
   );
 }
 
-// ===================== CATEGORY DETECTION =====================
+// ===================== CATEGORY =====================
 const CATEGORY_MAP = [
   { test: /ristorant|pizzer|trattor|osteria|sushi|kebab/i, type: "restaurant", keyword: "ristorante" },
   { test: /hotel|alberg|b&b|bnb/i, type: "lodging", keyword: "hotel" },
@@ -165,9 +131,9 @@ const CATEGORY_MAP = [
   { test: /bar|pub/i, type: "bar", keyword: "bar" },
   { test: /caff[eè]/i, type: "cafe", keyword: "caffè" },
   { test: /supermercat|market/i, type: "supermarket", keyword: "supermercato" },
-  { test: /bibliotec/i, type: "library", keyword: "biblioteca" },
-  { test: /scuola|universit|asilo/i, type: "school", keyword: "scuola" },
   { test: /centro\s?estetic|beauty/i, type: "beauty_salon", keyword: "centro estetico" },
+  { test: /auto|meccan|gommist|carrozzer/i, type: "car_repair", keyword: "officina" },
+  { test: /dent|medic|clinic/i, type: "doctor", keyword: "studio medico" },
 ];
 
 function detectCategory(queryText, placeTypes = []) {
@@ -181,18 +147,14 @@ function detectCategory(queryText, placeTypes = []) {
   return { type: "restaurant", keyword: "ristorante" };
 }
 
-// ===================== PLACE DETAILS + RANKING =====================
+// ===================== PLACE DETAILS =====================
 function fetchPlaceDetails(placeId) {
-  const cached = getCached(placeId);
-  if (cached) return showPlaceAndRank(cached);
-
   showMessage("Caricamento dettagli attività...");
   placesService.getDetails(
-    { placeId, fields: ["name", "formatted_address", "geometry", "rating", "user_ratings_total", "types", "place_id"] },
+    { placeId, fields: ["name","formatted_address","geometry","rating","user_ratings_total","types","place_id"] },
     (details, status) => {
       if (status !== google.maps.places.PlacesServiceStatus.OK || !details)
         return showMessage("Impossibile recuperare i dettagli dell'attività.");
-      setCached(placeId, details);
       showPlaceAndRank(details);
     }
   );
@@ -211,25 +173,26 @@ function showPlaceAndRank(details) {
   buildRealRanking(details, { type, keyword });
 }
 
+// ===================== RANKING =====================
 function buildRealRanking(targetDetails, cat) {
   const location = getSafe(targetDetails, "geometry.location", null);
   if (!location) return showMessage("Posizione non trovata.");
   const center = new google.maps.LatLng(location.lat(), location.lng());
 
-  const reqNearby = { location: center, radius: 10000, type: cat.type, keyword: cat.keyword, language: "it" }; // 🔥 10 km
+  const reqNearby = { location: center, radius: SEARCH_RADIUS, type: cat.type, keyword: cat.keyword, language: "it" };
   renderRankingCard("…");
 
   placesService.nearbySearch(reqNearby, (res, st) => {
     if (st === google.maps.places.PlacesServiceStatus.OK && res?.length) {
       finalizeRanking(targetDetails, center, res);
     } else {
-      const textReq = { query: `${cat.keyword || cat.type} vicino a ${targetDetails.formatted_address}`, language: "it" };
+      const textReq = { query: `${cat.keyword || cat.type} vicino a ${targetDetails.formatted_address}`, location: center, radius: SEARCH_RADIUS, language: "it" };
       placesService.textSearch(textReq, (res2) => finalizeRanking(targetDetails, center, res2 || []));
     }
   });
 }
 
-// ===================== RENDERING =====================
+// ===================== VISUAL =====================
 function finalizeRanking(targetDetails, center, rawList) {
   const mapped = (rawList || []).map(p => ({
     place_id: p.place_id,
@@ -252,8 +215,7 @@ function finalizeRanking(targetDetails, center, rawList) {
   const pos = ranked.findIndex(r => r.place_id === target.place_id) + 1 || "—";
 
   renderRankingCard(pos);
-  const ahead = typeof pos === "number" ? ranked.slice(0, pos - 1) : [];
-  renderNearbyPlaces(ahead.slice(0,7), target);
+  renderNearbyPlaces(ranked.slice(0, pos - 1).slice(0,7), target);
 }
 
 function renderRankingCard(pos) {
@@ -290,21 +252,6 @@ function renderNearbyPlaces(list, target) {
       </div></div>`;
   });
   html += `</div>`;
-
-  if (target && list.length > 0) {
-    const avgR = list.reduce((s, x) => s + x.rating, 0) / list.length;
-    const avgT = list.reduce((s, x) => s + x.total, 0) / list.length;
-    const color = target.rating < avgR ? "#FF5252" : "#FFC107";
-    const trend = target.rating < avgR
-      ? "⚠️ Il tuo rating è inferiore alla media nella tua zona."
-      : "😐 Hai un punteggio simile alla media locale.";
-    html += `<div style="margin-top:1.5rem;padding:1rem;border-radius:12px;background:rgba(255,255,255,0.08);font-size:.95rem;">
-    <strong>🔍 Analisi comparativa</strong><br>
-    Media top competitor: ${avgR.toFixed(1)}⭐ – ${Math.round(avgT)} recensioni<br>
-    Tua attività: ${target.rating.toFixed(1)}⭐ – ${target.total} recensioni<br>
-    <div style="margin-top:.4rem;color:${color};font-weight:600;">${trend}</div></div>`;
-  }
-
   box.innerHTML = html;
 }
 
