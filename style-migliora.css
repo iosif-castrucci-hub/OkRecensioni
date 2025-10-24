@@ -135,4 +135,37 @@
   opacity: 0;
 }
 
+/* ===== LEADERBOARD ===== */
+.leaderboard {
+  margin-top: 1.5rem;
+}
+.leaderboard-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.8rem;
+  text-align: left;
+}
+.competitor-card {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 0.9rem 1.2rem;
+  margin-bottom: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.competitor-info {
+  display: flex;
+  flex-direction: column;
+}
+.competitor-name {
+  font-weight: 600;
+  color: #fff;
+}
+.competitor-meta {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+}
 
