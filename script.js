@@ -114,6 +114,10 @@ function showPredictions(query) {
           inputEl.value = p.description;
           acContainer.classList.add("hidden");
           fetchPlaceDetails(p.place_id);
+          setTimeout(() => {
+            inputEl.value = ""; // 🔥 Pulisce il campo di ricerca
+            inputEl.blur(); // Chiude la tastiera su mobile
+          }, 400);
         };
         acContainer.appendChild(el);
       });
