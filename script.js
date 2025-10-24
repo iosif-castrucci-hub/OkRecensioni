@@ -311,7 +311,7 @@ function renderRankingCard(position) {
       <!-- WHATSAPP BUTTON (unico) -->
       <div style="display:flex;justify-content:center;margin-top:1.5rem;">
         <a 
-          href="https://wa.me/393534907105?text=Ciao%20👋%20Ho%20appena%20visto%20il%20mio%20posizionamento%20su%20Più%20Recensioni%20e%20vorrei%20migliorare%20la%20mia%20visibilità%20su%20Google.%20Puoi%20aiutarmi%3F"
+          href="https://wa.me/393534907105?text=Ciao%20👋%20Ho%20appena%20visto%20il%20mio%20posizionamento%20su%20+Recensioni%20e%20vorrei%20migliorare%20la%20mia%20visibilità%20su%20Google.%20Puoi%20aiutarmi%3F"
           target="_blank"
           id="whatsappButton"
           class="whatsapp-btn pulse-mobile"
