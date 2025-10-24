@@ -208,4 +208,119 @@
   font-weight: 700;
   color: #ffffff;
 }
+/* ===== UNIVERSAL RESPONSIVE FIX ===== */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+/* Centra tutti i blocchi principali e li rende fluidi */
+.header,
+.hero,
+.results-section,
+.cta-section,
+.footer {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-inline: clamp(0.8rem, 3vw, 1.5rem);
+}
+
+/* Logo fluido e centrato */
+.header-logo {
+  width: clamp(100px, 18vw, 220px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.4));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+}
+
+/* Titolo adattivo */
+.header-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+  text-align: center;
+}
+
+/* Card ranking fluida */
+.ranking-card {
+  width: 100%;
+  padding: clamp(1rem, 3vw, 2rem);
+  margin-top: clamp(0.8rem, 2vw, 1.2rem);
+  border-radius: clamp(14px, 2vw, 20px);
+}
+
+/* Hero e testo fluido */
+.hero h2 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.hero p {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  line-height: 1.5;
+}
+
+/* Input di ricerca adattivo */
+.search-box input {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  padding: clamp(0.6rem, 2vw, 1rem);
+}
+
+/* CTA (WhatsApp) centrata e fluida */
+.cta-section {
+  width: min(95%, 800px);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  margin: clamp(2rem, 5vw, 4rem) auto;
+  border-radius: 20px;
+  text-align: center;
+}
+
+/* Footer sempre centrato */
+.footer {
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  padding-block: clamp(1rem, 3vw, 1.5rem);
+  text-align: center;
+}
+
+/* ===== MOBILE & TABLET ===== */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .header-logo {
+    width: 110px;
+  }
+
+  .search-box {
+    width: 95%;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-logo {
+    width: 90px;
+  }
+
+  .header-title {
+    font-size: 1.6rem;
+  }
+
+  .hero h2 {
+    font-size: 1.3rem;
+  }
+}
 
